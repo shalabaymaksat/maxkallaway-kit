@@ -11,7 +11,10 @@ for n in "$@"; do
   python3 -W ignore "$S/kw_render.py" $n > out/$nn.log1 2>&1 || { echo "FAIL1 $n"; continue; }
   python3 -W ignore "$S/mkcheck.py" $n > out/$nn.logc 2>&1 || { echo "FAILc $n"; continue; }
   python3 -W ignore "$S/kw_render.py" $n > out/$nn.log2 2>&1 || { echo "FAIL2 $n"; continue; }
-  o=$(ls out/${nn}_*.mp4 | head -1); cp "$o" "$DST/"
+  o=$(ls out/${nn}_*.mp4 | head -1)
+  if [ $(wc -c < "$o") -gt 90000000 ]; then   # GitHub 100 MB шегі: үлкен файлды сығып салу
+    ffmpeg -v error -y -i "$o" -c:v libx264 -preset medium -crf 23 -pix_fmt yuv420p -c:a copy -movflags +faststart "$DST/$(basename "$o")"
+  else cp "$o" "$DST/"; fi
   echo "DONE $n -> $DST/$(basename "$o")"; grep -E "табылмады|камерада емес|video" out/$nn.log2
 done
 echo ALLDONE
